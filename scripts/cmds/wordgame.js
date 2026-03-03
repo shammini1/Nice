@@ -54,8 +54,8 @@ module.exports = {
 
         const userReply = event.body.trim().toLowerCase();
         const userData = await usersData.get(author);
-        const rewardCoins = 500;
-        const rewardExp = 121;
+        const rewardCoins = 20000;
+        const rewardExp = 5000;
 
         try { await api.unsendMessage(Reply.messageID); } catch {}
         global.GoatBot.onReply.delete(Reply.messageID);
