@@ -20,7 +20,6 @@ const qr = new (defaultRequire("qrcode-reader"));
 const Canvas = defaultRequire("canvas");
 const https = defaultRequire("https");
 
-// Create axios instance with retry configuration
 const axiosInstance = axios.create({
 	timeout: 30000,
 	httpsAgent: new https.Agent({
