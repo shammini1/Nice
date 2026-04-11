@@ -4,72 +4,42 @@ module.exports = {
   config: {
     name: "catbox",
     aliases: ["cb"],
-    version: "1.0.4",
+    version: "3.0",
+    author: "xalman",
+    countDown: 3,
     role: 0,
-    author: "Azadx69x",
-    countDown: 0,
-    category: "upload",
-    guide: {
-      en: "[reply with media or send a URL]"
-    }
+    shortDescription: "Upload media to Catbox",
+    category: "tools",
+    guide: "{pn} [reply to any media]"
   },
 
-  onStart: async function ({ api, event, args }) {
-    await this.uploadMedia(api, event, args);
-  },
+  onStart: async function ({ api, event }) {
+    const { threadID, messageID, type, messageReply } = event;
+    const API_URL = "https://xalman-apis.vercel.app/api/catbox";
 
-  uploadMedia: async function (api, event, args) {
-    let mediaUrl;
-    
-    const urlArg = args.join(" ");
-    if (urlArg && /^https?:\/\//i.test(urlArg)) {
-      mediaUrl = urlArg;
+    if (type !== "message_reply" || !messageReply.attachments || messageReply.attachments.length === 0) {
+      return api.sendMessage("╭─❍\n│ Please reply to a Photo, Video, GIF, or Audio!\n╰───────────⟡", threadID, messageID);
     }
-    else if (
-      event.type === "message_reply" &&
-      event.messageReply &&
-      event.messageReply.attachments &&
-      event.messageReply.attachments.length > 0
-    ) {
-      mediaUrl = event.messageReply.attachments[0].url;
-    }
-    else if (event.attachments && event.attachments.length > 0) {
-      mediaUrl = event.attachments[0].url;
-    }
-    else {
-      return api.sendMessage(
-        "❌ No media detected. Please reply to media, attach one, or send a valid URL.",
-        event.threadID,
-        event.messageID
-      );
-    }
+
+    const attachment = messageReply.attachments[0];
+    const mediaUrl = attachment.url;
+
+    const waitMsg = await api.sendMessage("Uploading...", threadID, messageID);
 
     try {
-      const endpoint = `https://azadx69x-all-apis-top.vercel.app/api/catbox?url=${encodeURIComponent(mediaUrl)}`;
-      const res = await axios.get(endpoint, { timeout: 20000 });
-      const data = res.data;
+      const res = await axios.post(API_URL, {
+        url: mediaUrl
+      });
 
-      if (!data || !data.url) {
-        return api.sendMessage(
-          "❌ Upload failed or invalid response from API.",
-          event.threadID,
-          event.messageID
-        );
+      const catboxUrl = res.data.url || res.data.data?.url || res.data.result;
+
+      if (catboxUrl) {
+        return api.editMessage(catboxUrl, waitMsg.messageID);
+      } else {
+        throw new Error();
       }
-
-      const reply = [
-        "✅ Upload Successful",
-        `🔗 URL: ${data.url}`
-      ].join("\n");
-
-      return api.sendMessage(reply, event.threadID, event.messageID);
-    } catch (err) {
-      console.error("Catbox API error:", err);
-      return api.sendMessage(
-        "❌ Error uploading media. Try again later.",
-        event.threadID,
-        event.messageID
-      );
+    } catch (error) {
+      return api.editMessage("✕ Failed to upload!", waitMsg.messageID);
     }
   }
 };
