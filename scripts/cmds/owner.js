@@ -1,60 +1,57 @@
-const fs = require("fs");
+const fs = require("fs-extra");
+const request = require("request");
 const path = require("path");
 
 module.exports = {
   config: {
     name: "owner",
-    version: "0.0.7",
-    author: "Azadx69x",
-    category: "owner",
-    guide: { en: "view owner info." },
-    usePrefix: true
+    version: "1.3.0",
+    author: "Anik Islam Sadik",
+    role: 0,
+    shortDescription: "Owner information with image",
+    category: "Information",
+    guide: {
+      en: "owner"
+    }
   },
 
-  sentThreads: new Map(),
+  onStart: async function ({ api, event }) {
+    const ownerText = 
+`╭─ 👑 Oᴡɴᴇʀ Iɴғᴏ 👑 ─╮
+│ 👤 Nᴀᴍᴇ       : ツꫝ𝙻𝚙𝙷𝚊 𝚂ꫝ𝙳𝙸𝙺ᥫ᭡
+│ 🧸 Nɪᴄᴋ       : 𝗖𝗵𝗼𝗖𝗼𝗟𝗮𝘁𝗲 𝗕𝗼𝘆
+│ 🎂 Aɢᴇ        : 𝟭𝟴+
+│ 💘 Rᴇʟᴀᴛɪᴏɴ : 𝗦𝗶𝗻𝗴𝗲𝗹
+│ 🎓 Pʀᴏғᴇssɪᴏɴ : 𝗦𝘁𝘂𝗱𝗲𝗻𝘁
+│ 📚 Eᴅᴜᴄᴀᴛɪᴏɴ : 𝗜𝗻𝘁𝗲𝗿 𝟭𝘀𝘁
+│ 🏡 Lᴏᴄᴀᴛɪᴏɴ : 𝗠𝗮𝗗𝗮𝗥𝗶𝗣𝘂𝗥
+├─ 🔗 Cᴏɴᴛᴀᴄᴛ ─╮
+│ 📘 Facebook  :  id=61574478201014
+│ 💬 Messenger: id=61574478201014
+│ 📞 WhatsApp  : 01342-925672
+╰────────────────╯`;
 
-  onStart: async function ({ api, event, message }) {
-    const threadID = event.threadID;
+    const cacheDir = path.join(__dirname, "cache");
+    const imgPath = path.join(cacheDir, "owner.jpg");
 
-    if (this.sentThreads.has(threadID)) return;
-    this.sentThreads.set(threadID, true);
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
 
-    const ownerInfo = {
-      name: "𝐦𝐨𝐡𝐚𝐦𝐦𝐚𝐝 𝐚𝐳𝐚𝐝",
-      nick: "𝐚𝐳𝐚𝐝𝐱𝟔𝟗𝐱",
-      age: "𝟏𝟖",
-      gender: "𝐌𝐚𝐥𝐞",
-      from: "𝐁𝐡𝐨𝐥𝐚,𝐁𝐚𝐧𝐠𝐥𝐚𝐝𝐞𝐬𝐡",
-      religion: "𝐈𝐬𝐥𝐚𝐦",
-      status: "𝐒𝐢𝐧𝐠𝐥𝐞",
-      dream: "😛 𝐛𝐨𝐮",
-      hobby: "𝐆𝐚𝐦𝐢𝐧𝐠,𝐜𝐨𝐝𝐢𝐧𝐠",
+    const imgLink = "https://i.imgur.com/gyVwtoC.gif";
+
+    const send = () => {
+      api.sendMessage(
+        {
+          body: ownerText,
+          attachment: fs.createReadStream(imgPath)
+        },
+        event.threadID,
+        () => fs.unlinkSync(imgPath),
+        event.messageID
+      );
     };
 
-    const msg = `╔═════ ∘◦ ☆ ◦∘ ═════╗
-    🎀  𝐎𝐖𝐍𝐄𝐑  𝐈𝐍𝐅𝐎  🎀
- ━━━━━━━━━━━━━━━━━━
-  🏷️ 𝐍𝐚𝐦𝐞 : ${ownerInfo.name}
-  🏷️ 𝐍𝐢𝐜𝐤𝐧𝐚𝐦𝐞 : ${ownerInfo.nick}
-  🎂 𝐀𝐠𝐞 : ${ownerInfo.age}
-  ⚧️ 𝐆𝐞𝐧𝐝𝐞𝐫 : ${ownerInfo.gender}
-  🌍 𝐅𝐫𝐨𝐦 : ${ownerInfo.from}
-  🕋 𝐑𝐞𝐥𝐢𝐠𝐢𝐨𝐧 : ${ownerInfo.religion}
-  ❤️ 𝐒𝐭𝐚𝐭𝐮𝐬 : ${ownerInfo.status}
-  😶 𝐃𝐫𝐞𝐚𝐦 : ${ownerInfo.dream}
-  🎯 𝐇𝐨𝐛𝐛𝐲 : ${ownerInfo.hobby}
- ━━━━━━━━━━━━━━━━━━
-  💫 𝐓𝐡𝐚𝐧𝐤 𝐲𝐨𝐮 𝐟𝐨𝐫 𝐰𝐚𝐭𝐜𝐡𝐢𝐧𝐠
-  📝 𝐀𝐧𝐲 𝐩𝐫𝐨𝐛𝐥𝐞𝐦? 𝐓𝐚𝐥𝐤 𝐭𝐨 𝐚𝐝𝐦𝐢𝐧.
-╚═════ ∘◦ ☆ ◦∘ ═════╝`;
-
-    try {
-      await message.reply(msg);
-    } catch (e) {
-      console.error("chudling pong:", e);
-      await message.reply("❌ 𝐄𝐫𝐫𝐨𝐫 𝐬𝐞𝐧𝐝𝐢𝐧𝐠 𝐨𝐰𝐧𝐞𝐫 𝐢𝐧𝐟𝐨.");
-    }
-
-    setTimeout(() => this.sentThreads.delete(threadID), 300000);
+    request(encodeURI(imgLink))
+      .pipe(fs.createWriteStream(imgPath))
+      .on("close", send)
   }
 };

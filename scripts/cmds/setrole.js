@@ -2,9 +2,9 @@ module.exports = {
 	config: {
 		name: "setrole",
 		version: "1.4",
-		author: "NtKhang",
+		author: "NTKhang",
 		countDown: 5,
-		role: 2,
+		role: 1,
 		description: {
 			vi: "Chỉnh sửa role của lệnh (những lệnh có role < 2)",
 			en: "Edit role of command (commands with role < 2)"
@@ -42,20 +42,20 @@ module.exports = {
 
 	langs: {
 		vi: {
-			noEditedCommand: "✅ Hiện tại nhóm bạn không có lệnh nào được chỉnh sửa role",
-			editedCommand: "⚠️ Những lệnh trong nhóm bạn đã chỉnh sửa role:\n",
-			noPermission: "❗ Chỉ có quản trị viên mới có thể thực hiện lệnh này",
+			noEditedCommand: "✓ Hiện tại nhóm bạn không có lệnh nào được chỉnh sửa role",
+			editedCommand: "⚠ Những lệnh trong nhóm bạn đã chỉnh sửa role:\n",
+			noPermission: "! Chỉ có quản trị viên mới có thể thực hiện lệnh này",
 			commandNotFound: "Không tìm thấy lệnh \"%1\"",
-			noChangeRole: "❗ Không thể thay đổi role của lệnh \"%1\"",
+			noChangeRole: "! Không thể thay đổi role của lệnh \"%1\"",
 			resetRole: "Đã reset role của lệnh \"%1\" về mặc định",
 			changedRole: "Đã thay đổi role của lệnh \"%1\" thành %2"
 		},
 		en: {
-			noEditedCommand: "✅ Your group has no edited command",
-			editedCommand: "⚠️ Your group has edited commands:\n",
-			noPermission: "❗ Only admin can use this command",
+			noEditedCommand: "✓ Your group has no edited command",
+			editedCommand: "⚠ Your group has edited commands:\n",
+			noPermission: "! Only admin can use this command",
 			commandNotFound: "Command \"%1\" not found",
-			noChangeRole: "❗ Can't change role of command \"%1\"",
+			noChangeRole: "! Can't change role of command \"%1\"",
 			resetRole: "Reset role of command \"%1\" to default",
 			changedRole: "Changed role of command \"%1\" to %2"
 		}
@@ -100,6 +100,6 @@ module.exports = {
 		if (Default)
 			delete setRole[commandName];
 		await threadsData.set(event.threadID, setRole, "data.setRole");
-		message.reply("✅ " + (Default === true ? getLang("resetRole", commandName) : getLang("changedRole", commandName, newRole)));
+		message.reply("✓ " + (Default === true ? getLang("resetRole", commandName) : getLang("changedRole", commandName, newRole)));
 	}
 };
