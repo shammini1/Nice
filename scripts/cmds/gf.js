@@ -6,7 +6,7 @@ const path = require("path");
 module.exports = {
   config: {
     name: "gf",
-    aliases: ["bf","crush"],
+    aliases: ["bf", "love", "crush"],
     author: "Azadx69x",
     version: "0.0.7",
     role: 0,
@@ -312,8 +312,21 @@ module.exports = {
       stream.pipe(out);
 
       out.on("finish", () => {
+        const messageText = `🦋 𝗬𝗼𝘂𝗿 𝗥𝗮𝗻𝗱𝗼𝗺 𝗚𝗙/𝗕𝗙 𝗠𝗮𝘁𝗰𝗵 
+
+╔══════════════════════╗
+    🌸 𝐘𝐎𝐔𝐑 𝐏𝐄𝐑𝐅𝐄𝐂𝐓 𝐒𝐎𝐔𝐋𝐌𝐀𝐓𝐄 🕊️
+╚══════════════════════╝
+
+🎀 𝗬𝗼𝘂: ${senderName}
+🎀 𝗠𝗮𝘁𝗰𝗵: ${matchName}
+
+━━━━━━━━━━━━━━━━━━━━━
+   🎀 𝗖𝗼𝗺𝗽𝗮𝘁𝗶𝗯𝗶𝗹𝗶𝘁𝘆: ${lovePercent}% 🦋
+━━━━━━━━━━━━━━━━━━━━━`;
+
         api.sendMessage(
-          { attachment: fs.createReadStream(outputPath) },
+          { body: messageText, attachment: fs.createReadStream(outputPath) },
           event.threadID,
           () => fs.unlinkSync(outputPath),
           event.messageID

@@ -1,43 +1,56 @@
-const axios = require('axios');
-const FormData = require('form-data');
+const axios = require("axios");
+const FormData = require("form-data");
 
 module.exports = {
   config: {
     name: "imgbb",
     aliases: ["i"],
-    version: "1.9",
-    author: "Azadx69x",
+    version: "1.0",
+    author: "xnil6x",
     countDown: 5,
     role: 0,
-    shortDescription: { en: "Convert an image to image URL" },
-    longDescription: { en: "Upload image to Imgbb by replying to a photo or sending it directly" },
-    category: "upload",
-    guide: { en: "{pn} reply to an image or send an image directly" }
+    description: {
+      en: "Upload image(s) to imgbb"
+    },
+    category: "uploader",
+    guide: {
+      en: "{pn} (reply to one or more images)"
+    }
   },
 
-  onStart: async function({ api, event }) {
-    let attachment = event.messageReply?.attachments?.[0] || event.attachments?.[0];
-    if (!attachment) return api.sendMessage('Please reply to a valid image.', event.threadID, event.messageID);
+  onStart: async function ({ api, event }) {
+    const imgbbApiKey = "1b4d99fa0c3195efe42ceb62670f2a25";
+    const attachments = event.messageReply?.attachments?.filter(att =>
+      ["photo", "sticker", "animated_image"].includes(att.type)
+    );
 
-    const imageUrl = attachment.url || attachment.previewUrl;
-    if (!imageUrl) return api.sendMessage('Please reply to a valid image.', event.threadID, event.messageID);
+    if (!attachments || attachments.length === 0) {
+      return api.sendMessage("Please reply to one or more image attachments.", event.threadID, event.messageID);
+    }
 
     try {
-      const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-      const imageBuffer = Buffer.from(imageResponse.data, 'binary');
+      const uploadedLinks = await Promise.all(
+        attachments.map(async (attachment, index) => {
+          const response = await axios.get(attachment.url, { responseType: "arraybuffer" });
+          const formData = new FormData();
+          formData.append("image", Buffer.from(response.data, "binary"), { filename: `image${index}.jpg` });
 
-      const form = new FormData();
-      form.append('key', 'd579af626f6e98719d175780e78a9e16');
-      form.append('image', imageBuffer.toString('base64'));
+          const res = await axios.post("https://api.imgbb.com/1/upload", formData, {
+            headers: formData.getHeaders(),
+            params: {
+              key: imgbbApiKey
+            }
+          });
 
-      const response = await axios.post('https://api.imgbb.com/1/upload', form, { headers: form.getHeaders() });
-      const result = response.data.data;
-        
-      return api.sendMessage(result.url, event.threadID, event.messageID);
+          return res.data.data.url;
+        })
+      );
+
+      return api.sendMessage(uploadedLinks.join("\n"), event.threadID, event.messageID);
 
     } catch (err) {
-      console.error(err);
-      return api.sendMessage('❌ Failed to upload image to Imgbb.', event.threadID, event.messageID);
+      console.error("Upload error:", err);
+      return api.sendMessage("Failed to upload one or more images to imgbb.", event.threadID, event.messageID);
     }
   }
 };
