@@ -1,55 +1,34 @@
 module.exports = {
-  config: {
-    name: "unsend",
-    aliases: ["u", "r", "uns"],
-    version: "0.0.7",
-    author: "Azadx69x",
-    countDown: 5,
-    role: 0,
-    description: {
-      en: "Delete bot messages"
-    },
-    category: "box chat",
-    guide: {
-      en: "Reply to a bot's message and type unsend"
-    },
-    usePrefix: false
-  },
-  
-  errors: ["🐸 𝐂𝐡𝐮𝐝𝐥𝐢𝐧𝐠 𝐩𝐨𝐧𝐠 𝐁𝐚𝐛𝐲 🫶"],
+	config: {
+		name: "unsend",
+		aliases: ["u","r","uns"],
+		version: "1.2",
+		author: "NTKhang",
+		countDown: 5,
+		role: 0,
+		description: {
+			vi: "Gỡ tin nhắn của bot",
+			en: "Unsend bot's message"
+		},
+		category: "box chat",
+		guide: {
+			vi: "reply tin nhắn muốn gỡ của bot và gọi lệnh {pn}",
+			en: "reply the message you want to unsend and call the command {pn}"
+		}
+	},
 
-  async handleUnsend({ event, message, api }) {
-    const botID = api.getCurrentUserID();
+	langs: {
+		vi: {
+			syntaxError: "Vui lòng reply tin nhắn muốn gỡ của bot"
+		},
+		en: {
+			syntaxError: "Please reply the message you want to unsend"
+		}
+	},
 
-    if (!event.messageReply || !event.messageReply.messageID) {
-      const randomError = this.errors[Math.floor(Math.random() * this.errors.length)];
-      return message.reply(randomError);
-    }
-
-    if (event.messageReply.senderID !== botID) {
-      const randomError = this.errors[Math.floor(Math.random() * this.errors.length)];
-      return message.reply(randomError);
-    }
-
-    try {
-      await message.unsend(event.messageReply.messageID);
-    } catch (e) {
-      return message.reply("⚠️ 𝐅𝐚𝐢𝐥𝐞𝐝 𝐭𝐨 𝐮𝐧𝐬𝐞𝐧𝐝 𝐦𝐞𝐬𝐬𝐚𝐠𝐞.");
-    }
-  },
-
-  onStart: async function (ctx) {
-    return this.handleUnsend(ctx);
-  },
-
-  onChat: async function ({ event, message, api }) {
-    if (!event.isGroup) return;
-
-    const body = event.body?.toLowerCase()?.trim();
-    if (!body) return;
-
-    if (["u", "r", "uns"].includes(body)) {
-      return this.handleUnsend({ event, message, api });
-    }
-  }
+	onStart: async function ({ message, event, api, getLang }) {
+		if (!event.messageReply || event.messageReply.senderID != api.getCurrentUserID())
+			return message.reply(getLang("syntaxError"));
+		message.unsend(event.messageReply.messageID);
+	}
 };

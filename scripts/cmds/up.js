@@ -1,169 +1,186 @@
-const { createCanvas } = require("canvas");
-const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const fs = require("fs");
+const { createCanvas } = require("canvas");
+
+process.stderr.clearLine = process.stderr.clearLine || function () {};
+process.stdout.clearLine = process.stdout.clearLine || function () {};
 
 module.exports = {
   config: {
-    name: "up",
-    aliases: ["dashboard"],
-    version: "0.0.7",
-    author: "Azadx69x",//Author change korle tor marechudi 
-    role: 0,
+    name: "uptime",
+    aliases: ["runtime", "up"],
+    version: "1.10",
+    author: "NZ R",
     countDown: 5,
-    shortDescription: { en: "System status card" },
-    longDescription: { en: "Shows uptime, RAM, CPU, ping with inner card and body message" },
-    category: "system",
+    role: 0,
+    shortDescription: { en: "Check system uptime and status with image" },
+    longDescription: { en: "Displays the system uptime, RAM usage, CPU load, and other server details on an image." },
+    category: "SYSTEM",
     guide: { en: "{pn}" }
   },
 
   onStart: async function ({ api, event }) {
-    const uptimeBot = process.uptime();
-    const uptimeSystem = os.uptime();
-    const formatTime = sec => {
-      const d = Math.floor(sec / 86400);
-      const h = Math.floor((sec % 86400) / 3600);
-      const m = Math.floor((sec % 3600) / 60);
-      const s = Math.floor(sec % 60);
-      return `${d}d ${h}h ${m}m ${s}s`;
-    };
+    const { threadID, messageID } = event;
+    const cacheFolderPath = path.join(__dirname, "cache");
+    if (!fs.existsSync(cacheFolderPath)) fs.mkdirSync(cacheFolderPath, { recursive: true });
+    const imagePath = path.join(cacheFolderPath, `uptime_${Date.now()}.png`);
 
-    const totalMem = os.totalmem() / 1024 / 1024;
-    const freeMem = os.freemem() / 1024 / 1024;
-    const usedMem = totalMem - freeMem;
-    const ramPercent = ((usedMem / totalMem) * 100).toFixed(1);
+    try {
+      api.setMessageReaction("🛡️", event.messageID, () => {}, true);
 
-    const cpuModel = os.cpus()[0].model;
-    const cores = os.cpus().length;
-    const platform = `${os.platform()} (${os.arch()})`;
-    const hostname = os.hostname();
-    const ping = event.timestamp ? Date.now() - event.timestamp : "N/A";
-    const botMemory = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1);
+      const uptime = process.uptime();
+      const days = Math.floor(uptime / 86400);
+      const hours = Math.floor((uptime % 86400) / 3600);
+      const minutes = Math.floor((uptime % 3600) / 60);
+      const seconds = Math.floor(uptime % 60);
+      const uptimeString = `${days}d ${hours}h ${minutes}m ${seconds}s`;
 
-    const width = 600;
-    const height = 460;
-    const canvas = createCanvas(width, height);
-    const ctx = canvas.getContext("2d");
+      const totalMem = os.totalmem();
+      const freeMem = os.freemem();
+      const usedMem = totalMem - freeMem;
+      const usedGB = (usedMem / 1024 / 1024 / 1024).toFixed(2);
+      const totalGB = (totalMem / 1024 / 1024 / 1024).toFixed(2);
 
-    ctx.fillStyle = "#0c1420";
-    ctx.fillRect(0, 0, width, height);
+      const cpus = os.cpus();
+      let totalIdle = 0, totalTick = 0;
+      cpus.forEach(cpu => {
+        for (const type in cpu.times) totalTick += cpu.times[type];
+        totalIdle += cpu.times.idle;
+      });
+      const avgCpuLoad = ((1 - totalIdle / totalTick) * 100).toFixed(2);
 
-    const leftGlow = ctx.createLinearGradient(0, 0, 100, 0);
-    leftGlow.addColorStop(0, "rgba(0, 255, 255, 0.45)");
-    leftGlow.addColorStop(1, "rgba(0, 255, 255, 0)");
-    ctx.fillStyle = leftGlow;
-    ctx.fillRect(0, 0, 100, height);
+      const ping = Date.now() - event.timestamp;
+      const platform = `${os.platform()} (${os.arch()})`;
+      const nodeVersion = process.version;
+      const hostname = os.hostname();
 
-    const rightGlow = ctx.createLinearGradient(width - 100, 0, width, 0);
-    rightGlow.addColorStop(0, "rgba(0, 255, 255, 0)");
-    rightGlow.addColorStop(1, "rgba(0, 255, 255, 0.45)");
-    ctx.fillStyle = rightGlow;
-    ctx.fillRect(width - 100, 0, 100, height);
+      const info = [
+        { label: "Uptime", value: uptimeString },
+        { label: "Ping", value: `${ping} ms` },
+        { label: "RAM Usage", value: `${usedGB} GB / ${totalGB} GB` },
+        { label: "CPU Load", value: `${avgCpuLoad}%` },
+        { label: "Platform", value: platform },
+        { label: "Node.js", value: nodeVersion },
+        { label: "Hostname", value: hostname }
+      ];
 
-    const cardX = 30;
-    const cardY = 60;
-    const cardWidth = width - 60;
-    const cardHeight = height - 100;
-    ctx.fillStyle = "#1a1f2b";
-    ctx.shadowColor = "#00bfff";
-    ctx.shadowBlur = 20;
-    ctx.fillRect(cardX, cardY, cardWidth, cardHeight);
-    ctx.shadowBlur = 0;
+      const width = 1400;
+      const height = 800;
+      const canvas = createCanvas(width, height);
+      const ctx = canvas.getContext('2d');
 
-    ctx.fillStyle = "#00bfff";
-    ctx.font = "22px Roboto";
-    ctx.shadowColor = "#00d5ff";
-    ctx.shadowBlur = 18;
-    ctx.fillText("X69X BOT V3", 50, 40);
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, '#181825');
+      gradient.addColorStop(1, '#0a0a10');
+      
+      const rx = 60, ry = 60;
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.moveTo(rx, 0);
+      ctx.lineTo(width - rx, 0);
+      ctx.quadraticCurveTo(width, 0, width, ry);
+      ctx.lineTo(width, height - ry);
+      ctx.quadraticCurveTo(width, height, width - rx, height);
+      ctx.lineTo(rx, height);
+      ctx.quadraticCurveTo(0, height, 0, height - ry);
+      ctx.lineTo(0, ry);
+      ctx.quadraticCurveTo(0, 0, rx, 0);
+      ctx.closePath();
+      ctx.fill();
 
-    const labels = [
-      "Bot Uptime", "System Uptime", "CPU", "RAM Usage",
-      "Platform", "Node.js", "Host", "Ping", "Memory (Bot)", "Developer"
-    ];
+      const infoBoxWidth = 1260;
+      const infoBoxHeight = 610;
+      const infoBoxX = (width - infoBoxWidth) / 2;
+      const infoBoxY = (height - infoBoxHeight) / 2;
+      const infoBoxRx = 70, infoBoxRy = 70;
 
-    const values = [
-      formatTime(uptimeBot),
-      formatTime(uptimeSystem),
-      `${cpuModel} (${cores} cores)`,
-      `${usedMem.toFixed(0)} / ${totalMem.toFixed(0)} MB`,
-      platform,
-      process.version,
-      hostname,
-      `${ping} ms`,
-      `${botMemory} MB`,
-      "Azadx69x"
-    ];
+      ctx.shadowColor = 'rgba(44, 39, 66, 0.8)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 5;
 
-    const labelColors = [
-      "#00ff7f", "#00ffff", "#ff00ff", "#ff4500",
-      "#1e90ff", "#ffd700", "#7fff00", "#ff69b4",
-      "#00bfff", "orange"
-    ];
+      ctx.fillStyle = 'rgba(21, 21, 32, 0.98)';
+      ctx.beginPath();
+      ctx.moveTo(infoBoxX + infoBoxRx, infoBoxY);
+      ctx.lineTo(infoBoxX + infoBoxWidth - infoBoxRx, infoBoxY);
+      ctx.quadraticCurveTo(infoBoxX + infoBoxWidth, infoBoxY, infoBoxX + infoBoxWidth, infoBoxY + infoBoxRy);
+      ctx.lineTo(infoBoxX + infoBoxWidth, infoBoxY + infoBoxHeight - infoBoxRy);
+      ctx.quadraticCurveTo(infoBoxX + infoBoxWidth, infoBoxY + infoBoxHeight, infoBoxX + infoBoxWidth - infoBoxRx, infoBoxY + infoBoxHeight);
+      ctx.lineTo(infoBoxX + infoBoxRx, infoBoxY + infoBoxHeight);
+      ctx.quadraticCurveTo(infoBoxX, infoBoxY + infoBoxHeight, infoBoxX, infoBoxY + infoBoxHeight - infoBoxRy);
+      ctx.lineTo(infoBoxX, infoBoxY + infoBoxRy);
+      ctx.quadraticCurveTo(infoBoxX, infoBoxY, infoBoxX + infoBoxRx, infoBoxY);
+      ctx.closePath();
+      ctx.fill();
 
-    ctx.font = "15px Roboto";
-    labels.forEach((label, i) => {
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = labelColors[i];
-      ctx.fillStyle = labelColors[i];
-      ctx.fillText(label, cardX + 20, cardY + 40 + i * 30);
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
 
-      ctx.shadowColor = "#68c6ff";
-      ctx.fillStyle = "#ffffff";
-      const maxWidth = cardWidth - 200;
-      ctx.fillText(values[i], cardX + 180, cardY + 40 + i * 30, maxWidth);
-    });
+      const centerX = width / 2;
+      const centerY = height / 2;
+      
+      const radialGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 160);
+      radialGradient.addColorStop(0, 'rgba(139, 92, 246, 0.4)');
+      radialGradient.addColorStop(0.7, 'rgba(139, 92, 246, 0)');
+      radialGradient.addColorStop(1, 'transparent'); 
+      
+      ctx.fillStyle = radialGradient;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 160, 0, Math.PI * 2);
+      ctx.fill();
 
-    const centerX = cardX + cardWidth - 70;
-    const centerY = cardY + 60;
-    const radius = 45;
-    const startAngle = -Math.PI / 2;
-    const endAngle = startAngle + (2 * Math.PI * ramPercent / 100);
+      ctx.strokeStyle = 'rgba(139, 92, 246, 0.6)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 130, 0, Math.PI * 2);
+      ctx.stroke();
 
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-    ctx.strokeStyle = "#111";
-    ctx.lineWidth = 7;
-    ctx.stroke();
+      ctx.strokeStyle = 'rgba(167, 139, 250, 0.4)';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 100, 0, Math.PI * 2);
+      ctx.stroke();
 
-    const grad = ctx.createLinearGradient(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
-    grad.addColorStop(0, "#00ffff");
-    grad.addColorStop(0.5, "#00bfff");
-    grad.addColorStop(1, "#1e90ff");
+      ctx.font = '500 40px sans-serif';
+      
+      const startY = infoBoxY + 120;
 
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = 7;
-    ctx.shadowColor = "#00ffff";
-    ctx.shadowBlur = 20;
-    ctx.stroke();
+      info.forEach((item, i) => {
+        const yPos = startY + i * 75;
 
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = "#00bfff";
-    ctx.fillStyle = "#00bfff";
-    ctx.font = "14px Roboto";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(`${ramPercent}%`, centerX, centerY);
+        ctx.fillStyle = '#d1c4e9';
+        ctx.textAlign = 'left';
+        ctx.fillText(item.label, 160, yPos);
 
-    ctx.font = "16px Roboto";
-    ctx.fillStyle = "#00ffff";
-    ctx.shadowColor = "#00ffff";
-    ctx.shadowBlur = 15;
-    ctx.textAlign = "center";
-    ctx.fillText("Bot is running smoothly", width / 2, height - 20);
+        ctx.fillStyle = '#e0e0f4';
+        ctx.fillText(item.value, 600, yPos);
 
-    const buffer = canvas.toBuffer("image/png");
-    const filePath = path.join(__dirname, "status_card.png");
-    await fs.promises.writeFile(filePath, buffer);
+        ctx.strokeStyle = 'rgba(139, 92, 246, 0.15)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(160, yPos + 28);
+        ctx.lineTo(1240, yPos + 28);
+        ctx.stroke();
+      });
 
-    await api.sendMessage(
-      { attachment: fs.createReadStream(filePath) },
-      event.threadID,
-      event.messageID
-    );
+      const out = fs.createWriteStream(imagePath);
+      const stream = canvas.createPNGStream();
+      stream.pipe(out);
 
-    fs.unlinkSync(filePath);
+      out.on('finish', () => {
+        api.setMessageReaction("✅", event.messageID, () => {}, true);
+        api.sendMessage({ attachment: fs.createReadStream(imagePath) }, threadID, (err) => {
+          if (!err) fs.unlink(imagePath, () => {});
+          else {
+            if (fs.existsSync(imagePath)) fs.unlink(imagePath, () => {});
+          }
+        }, messageID);
+      });
+
+    } catch (error) {
+      api.setMessageReaction("❌", event.messageID, () => {}, true);
+      if (fs.existsSync(imagePath)) fs.unlink(imagePath, () => {});
+    }
   }
 };
