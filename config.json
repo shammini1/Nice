@@ -25,31 +25,28 @@
     "ignoreCommand": []
   },
   "adminBot": [
-    "61588403646276",
-    "61585772322631",
-    "61576599896861"
+    "61574478201014",
+    "61556148417715",
+    "100091559987531",
+    "100051869042398"
   ],
   "developer": [
-    "61588403646276",
-    "61585772322631",
-    "61576599896861",
-    "61553004827618",
-    "100077764623961"
+    "61574478201014",
+    "61556148417715",
+    "100051869042398"
   ],
   "vipuser": [
-    "61588403646276",
-    "61585772322631",
-    "61576599896861"
+    "61574478201014",
+    "61556148417715",
+    "100051869042398"
   ],
   "premium": [
-    "61585772322631",
-    "61588403646276",
-    "61576599896861"
+    "61574478201014",
+    "61556148417715"
   ],
   "creator": [
-    "61585772322631",
-    "61588403646276",
-    "61576599896861"
+    "61574478201014",
+    "61556148417715"
   ],
   "reactBy": {
     "delete": [
@@ -79,8 +76,8 @@
     "whiteListIds": [],
     "notes": "if you enable this feature, only the ids in the whiteListIds section can use the bot"
   },
-  "nickNameBot": "X69X BOT V3",
-  "prefix": ")",
+  "nickNameBot": "→🦋⃟𝘘υєєñ αℓуα ♪⃝🕊️",
+  "prefix": "/",
   "database": {
     "type": "mongodb",
     "uriMongodb": "mongodb+srv://Hinata:W2fNh.H9iWFU22F@cluster0.cyattib.mongodb.net/OZADNOOB1?retryWrites=true&w=majority&appName=Cluster0",
@@ -196,10 +193,9 @@
     "notes": "Document here: https://github.com/ntkhang03/fb-chat-api/blob/master/DOCS.md#apisetoptionsoptions "
   },
   "devUsers": [
-    "61588403646276",
-    "61585772322631",
-    "61576599896861",
-    "61553004827618",
-    "100077764623961"
+    "61574478201014",
+    "61556148417715",
+    "61580068018277",
+    "100004924009085"
   ]
 }
