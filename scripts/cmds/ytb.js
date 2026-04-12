@@ -75,7 +75,7 @@ module.exports = {
       }
 
       api.sendMessage({
-        body: body + `🔰 Dev: Mueid Mursalin Rifat 😺`,
+        body: body + `🔰 Dev: Anik Islam Sadik 😺`,
         attachment: attachments
       }, event.threadID, (err, info) => {
         // Clean up temp files
