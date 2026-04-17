@@ -76,8 +76,8 @@
     "whiteListIds": [],
     "notes": "if you enable this feature, only the ids in the whiteListIds section can use the bot"
   },
-  "nickNameBot": "→🦋⃟𝘘υєєñ αℓуα ♪⃝🕊️",
-  "prefix": "/",
+  "nickNameBot": "亗☯Ｍａｄａｒꫝ☯亗",
+  "prefix": ",",
   "database": {
     "type": "mongodb",
     "uriMongodb": "mongodb+srv://Hinata:W2fNh.H9iWFU22F@cluster0.cyattib.mongodb.net/OZADNOOB1?retryWrites=true&w=majority&appName=Cluster0",
